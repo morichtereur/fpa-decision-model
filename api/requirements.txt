@@ -1,0 +1,11 @@
+# Runtime dependencies for the deployed API only.
+#
+# Deliberately smaller than the repo's requirements.txt: matplotlib belongs
+# to src/report.py and pypdf to src/extract.py, neither of which the API
+# imports, and anthropic is only reached inside commentary.write() — which
+# the deployment never calls, since live commentary needs a key it does not
+# have. Keeping them out holds the function bundle down and the cold start
+# short.
+fastapi
+numpy
+python-dotenv

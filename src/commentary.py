@@ -19,8 +19,6 @@ from __future__ import annotations
 
 import re
 
-from anthropic import Anthropic
-
 from src import config as C
 
 SYSTEM_PROMPT = """You write short management commentary (3-5 sentences) on an FP&A \
@@ -70,6 +68,11 @@ def write(backtest_result: dict) -> tuple[str, dict]:
     alongside the text because verify_grounding() needs the exact same
     table the LLM was shown, not a freshly recomputed one that could have
     drifted."""
+    # Imported here rather than at module scope: verify_grounding() is the
+    # tested half and needs no SDK, and the deployed API never calls write()
+    # — so the serverless bundle can leave the dependency out entirely.
+    from anthropic import Anthropic
+
     outputs = _flatten_outputs(backtest_result)
     client = Anthropic(api_key=C.ANTHROPIC_API_KEY)
     table_text = "\n".join(f"{k}: {v}" for k, v in outputs.items())

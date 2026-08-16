@@ -76,16 +76,27 @@ cd web && cp .env.local.example .env.local && npm install && npm run dev   # Nex
 
 ### Deploy it
 
-Two hosts, because each side then runs on its platform's default path with no
-custom build configuration on either.
+Two Vercel projects from this one repository.
 
-**API** — Render reads `render.yaml` from the repo root: connect the
-repository as a Blueprint, and set `CORS_ORIGINS` to the frontend's origin
-once Vercel has assigned one.
+**API** — a new project with **Root Directory** left at the repo root.
+`vercel.json` builds `api/index.py` as a Python serverless function and
+routes every `/api/*` request into the FastAPI app. Set `CORS_ORIGINS` to
+the frontend's origin once it exists.
 
-**Frontend** — Vercel, with **Root Directory** set to `web`. Next.js is
-detected without further configuration. Set `NEXT_PUBLIC_API_BASE` to the
-Render service URL.
+**Frontend** — a second project with **Root Directory** set to `web`.
+Next.js is detected without further configuration. Set
+`NEXT_PUBLIC_API_BASE` to the API project's URL.
+
+Serverless rather than a long-running host on purpose: free container tiers
+sleep after minutes of inactivity and answer the next visitor after a
+30-60s cold start, which is worse than no demo. `render.yaml` is kept as a
+fallback if the serverless route needs more fighting than it is worth.
+
+The function installs `api/requirements.txt`, which is deliberately smaller
+than the repo's: matplotlib belongs to `src/report.py`, pypdf to
+`src/extract.py`, and the Anthropic SDK is imported inside
+`commentary.write()` rather than at module scope — so a bundle that never
+plots, parses a PDF or calls an LLM does not carry any of them.
 
 Three of the four routes are server-rendered on demand, since they read the
 model at request time — so the frontend needs a Node runtime rather than a
