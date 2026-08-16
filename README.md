@@ -74,6 +74,34 @@ make api                          # FastAPI on :8000 — the model, as JSON
 cd web && cp .env.local.example .env.local && npm install && npm run dev   # Next.js on :3000
 ```
 
+### Deploy it
+
+Two hosts, because each side then runs on its platform's default path with no
+custom build configuration on either.
+
+**API** — Render reads `render.yaml` from the repo root: connect the
+repository as a Blueprint, and set `CORS_ORIGINS` to the frontend's origin
+once Vercel has assigned one.
+
+**Frontend** — Vercel, with **Root Directory** set to `web`. Next.js is
+detected without further configuration. Set `NEXT_PUBLIC_API_BASE` to the
+Render service URL.
+
+Three of the four routes are server-rendered on demand, since they read the
+model at request time — so the frontend needs a Node runtime rather than a
+static export.
+
+**No `ANTHROPIC_API_KEY` on either host.** Preset commentary is served from
+the committed `data/commentary.json` and works without one;
+`/api/commentary/live` returns a 503 with a clear message rather than
+exposing a billable endpoint to the open internet. Live commentary stays a
+local-development feature.
+
+Verified end to end against a production build locally — `next build` +
+`next start` against the API, presets recomputing through `POST
+/api/scenario`. The hosted deployment itself is one connect step on each
+platform.
+
 ## The company
 
 **adidas AG**, using its FY2024 and FY2025 annual reports (not part of the

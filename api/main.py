@@ -17,7 +17,7 @@ app = FastAPI(title="FP&A Decision Model API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=C.CORS_ORIGINS,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
