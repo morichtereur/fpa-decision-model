@@ -141,7 +141,11 @@ discloses.
    Reports which assumption's variance explains the most FCF variance.
 5. **Commentary** (`src/commentary.py`) — an LLM writes management
    commentary from the backtest's output table only, never from raw source
-   text. Every number it states is regex-extracted and checked back
+   text. Each series in that table is prefixed with its own name, so a
+   scenario is described as that scenario: tabling a stress case under
+   `driver_based_*` once produced commentary calling a −61.2% free-cash-flow
+   miss "the driver-based model", on a page where the backtest reports that
+   model's error as 3.4%. Every number it states is regex-extracted and checked back
    against that table; a live run scored a 100% grounding rate (15/15
    claims), reported alongside the forecast rather than assumed.
 6. **Report** (`src/report.py`) — writes `RESULTS.md` and the Monte Carlo

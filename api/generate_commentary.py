@@ -22,7 +22,11 @@ def run() -> None:
     results = {}
     for scenario_id in drivers.PRESETS.keys():  # "base" is itself one of the presets
         values = service.base_driver_values() if scenario_id == "base" else service.resolve_preset(scenario_id)
-        commentary = service.generate_live_commentary(values)
+        # "base" is the driver-based forecast itself; every other preset is a
+        # scenario and is labelled as one, so the commentary does not describe
+        # a stress case as the driver-based model.
+        series_name = "driver_based" if scenario_id == "base" else scenario_id
+        commentary = service.generate_live_commentary(values, series_name=series_name)
         results[scenario_id] = {
             **commentary,
             "generated_at": datetime.now(timezone.utc).isoformat(),

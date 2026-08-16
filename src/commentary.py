@@ -26,6 +26,12 @@ from src import config as C
 SYSTEM_PROMPT = """You write short management commentary (3-5 sentences) on an FP&A \
 forecast, for a reader who will see the numbers table alongside your text.
 
+The table prefixes each number with the series it belongs to. Call each series \
+by the name it is given: `actual_` is what happened, `naive_` is the top-down \
+extrapolation, and the third prefix names the forecast under discussion. When \
+that third series is a named scenario rather than the driver-based forecast, \
+describe it as that scenario — a stress case is not the forecast.
+
 Rules:
 - Use ONLY the numbers in the table you are given. Do not compute, estimate, \
 round to a different precision than shown, or bring in any figure not present \
@@ -38,14 +44,24 @@ known facts in the table.
 
 
 def _flatten_outputs(backtest_result: dict) -> dict:
-    """Turn src.backtest.run()'s nested result into a flat label -> number
-    table, which is both what the LLM is given and what verify_grounding()
-    checks claims against."""
+    """Turn a nested {series: {metric: value}} result into a flat
+    label -> number table, which is both what the LLM is given and what
+    verify_grounding() checks claims against.
+
+    Series names are taken from the caller rather than hardcoded: the
+    backtest passes `driver_based`, while the Scenario Planner passes the
+    scenario's own name, so a stress case is not tabled under a label that
+    invites the model to call it the driver-based forecast.
+    """
     flat = {}
-    for method in ("actual", "naive", "driver_based"):
-        for key, value in backtest_result[method].items():
-            if isinstance(value, (int, float)):
-                flat[f"{method}_{key}"] = round(value, 1)
+    for series, metrics in backtest_result.items():
+        for key, value in metrics.items():
+            # bool is an int subclass, so a flag would otherwise enter the
+            # table as 1 — a number the model is then free to cite, and
+            # verify_grounding() would accept it.
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                continue
+            flat[f"{series}_{key}"] = round(value, 1)
     return flat
 
 

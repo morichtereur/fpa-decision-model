@@ -265,14 +265,21 @@ def get_commentary_for(scenario_id: str) -> dict | None:
     return all_commentary.get(scenario_id)
 
 
-def generate_live_commentary(driver_values: dict) -> dict:
+def generate_live_commentary(driver_values: dict, series_name: str = "driver_based") -> dict:
+    """`series_name` labels the forecast series in the table the LLM writes
+    from. It defaults to the driver-based forecast, but a preset passes its
+    own id — otherwise a stressed scenario's free cash flow is tabled as
+    `driver_based_free_cash_flow` and the commentary faithfully calls a
+    stress case "the driver-based model", contradicting the backtest's own
+    reported error on the same page.
+    """
     scenario_forecast = run_forecast(driver_values)
     base_forecast = run_forecast(base_driver_values())
     bt = get_backtest()
     pseudo_backtest_result = {
         "actual": bt["actual"],
         "naive": bt["naive"],
-        "driver_based": {
+        series_name: {
             **scenario_forecast,
             "revenue_error_pct": (scenario_forecast["revenue"] - bt["actual"]["revenue"]) / bt["actual"]["revenue"] * 100,
             "operating_profit_error_pct": (scenario_forecast["operating_profit"] - bt["actual"]["operating_profit"]) / bt["actual"]["operating_profit"] * 100,
