@@ -10,6 +10,89 @@ assumptions and calculated outputs, then traces channel and category growth
 through to EBITDA and free cash flow for one real company — rather than
 presenting a forecast as if it were a measurement.
 
+**[▶ Open the live cockpit](https://fpa-decision-model.vercel.app/planner)** — drag
+the working-capital slider and watch the free-cash-flow bridge move. That one
+interaction is the finding below.
+
+## The guardrail: getting LLM prose into a deliverable that carries numbers
+
+The reusable part of this repository is not the adidas forecast. It is the
+pattern that lets generated text into a document a client acts on.
+
+The problem is generic: an LLM asked to narrate a financial result will
+produce fluent prose containing figures that were never calculated, and
+nobody reading the paragraph can tell which is which. Prompting harder does
+not fix it, because the failure is unobservable at the point of use.
+
+The architecture inverts the usual order. The model never sees source
+documents and never computes anything: a deterministic Python model produces
+a flat table of calculated outputs, the LLM is given only that table and told
+to introduce no number outside it, and every numeric claim in the returned
+prose is then extracted and checked back against the table it was written
+from. Generation is untrusted by construction; the check is the contract.
+
+```mermaid
+flowchart LR
+    F[Reported facts<br/>parsed from filings] --> M[Deterministic model<br/>src/model.py]
+    A[Assumptions<br/>explicit, ranged] --> M
+    M --> T[Output table<br/>label → number]
+    T --> L[LLM<br/>writes prose from the table only]
+    L --> P[Draft commentary]
+    T --> V{Verifier<br/>every figure vs. the table}
+    P --> V
+    V -->|grounded| D[Deliverable<br/>with a grounding rate attached]
+    V -->|ungrounded| R[Flagged, not shipped]
+```
+
+It transfers because nothing in it is about finance. Any domain where a
+calculation exists and prose must describe it — actuarial results, clinical
+readouts, regulatory reporting, cost models — has the same shape: a trusted
+computation, an untrusted narrator, and a check between them.
+
+### What the guardrail does not catch
+
+A grounding rate measures the model. `eval/eval_verifier.py` measures the
+guardrail, by feeding it commentary whose numbers are known to be wrong
+(`make eval-verifier`, no API calls, runs in CI):
+
+| attack | caught |
+|---|---|
+| Free invention, unrelated to the model | 85% |
+| Order-of-magnitude error (×10, ÷10) | 90% |
+| **Near-miss: a real value drifted 1–4%** | **0%** |
+| **Cross-metric: a real value under the wrong metric's name** | **0%** |
+| Control: correctly quoted values | 100% accepted, no false positives |
+
+Both blind spots are structural rather than tuning problems, and the second
+is the more serious. Anything inside the relative tolerance is invisible by
+construction — so the layer is strongest against wild invention, which is not
+how models fail, and blind to drift, which is. And because the verifier
+compares numbers against the whole table without ever seeing which label a
+claim attached them to, a correct figure reported as the wrong metric passes
+every check. That is not hypothetical: it is exactly how a stress scenario in
+this repository came to be described as the driver-based forecast with every
+number in the sentence real.
+
+Claim-level checking closes the second gap; a tolerance is a poor instrument
+for the first. Both are open, and stated here rather than discovered by a
+reader.
+
+## Decision implication
+
+For a CFO the useful output is not the forecast, it is where to spend review
+time. Free cash flow correlates −0.92 with the working-capital assumption and
+−0.19 with revenue growth, so the quarterly argument about the growth rate —
+the one that fills the room — is the input that moves the answer least. The
+naive forecast's largest miss came from precisely the assumption nobody
+debated: it held working capital flat while it rose from 19.7% to 23.0% of
+sales.
+
+That reframes the planning cycle rather than improving it at the margin.
+Growth is the number with the most opinions attached and the least leverage;
+working capital is the reverse. A review built on this evidence opens on
+payment terms, inventory and collection, and carries the growth assumption as
+a range rather than negotiating it as a figure.
+
 ## Key finding
 
 **Yes, on every metric — but both forecasts still missed by a lot, because adidas beat its own guidance.** Built as of FY2024 using only that year's data and adidas's own stated FY2025 outlook, the driver-based model's error was smaller than a naive extrapolation's on revenue (3.1% vs. 5.5%), operating profit (14.9% vs. 22.3%) and free cash flow (3.4% vs. 14.8%). Both undershot actual FY2025 operating profit — adidas guided €1.7-1.8bn and delivered €2,056m — so "the driver-based model won" is not the same claim as "the driver-based model was accurate."
