@@ -7,10 +7,10 @@ happened?
 
 With three fiscal years (2023-2025) there is exactly one honest backtest
 point: build the model as of FY2024 (using only 2023-2024 drivers and
-Henkel's own stated mid-term ambitions as the planning assumptions),
-forecast FY2025, and compare both the driver-based and naive-extrapolation
-forecasts against FY2025 actuals. That is a thin sample — say so in the
-README rather than dressing it up as more than one data point.
+adidas's own stated FY2025 guidance as the planning assumptions), forecast
+FY2025, and compare both the driver-based and naive-extrapolation forecasts
+against FY2025 actuals. That is a thin sample — say so in the README rather
+than dressing it up as more than one data point.
 
 TODO:
 - naive_baseline(): extrapolate FY2025 from the FY2024 run-rate only

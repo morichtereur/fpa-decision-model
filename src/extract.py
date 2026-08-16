@@ -1,26 +1,26 @@
 """
-Stage 1: pull the organic sales bridge out of the two source PDFs.
+Stage 1: pull the currency-neutral growth breakdown out of the two source
+PDFs.
 
-Henkel's annual reports disclose, at Group and business-unit level, a
-sales-development table shaped like:
+adidas doesn't disclose a price/volume bridge (see data/raw/README.md for
+how that was checked before this design was picked). What it discloses,
+consistently, is currency-neutral revenue growth broken down by:
 
-    Change versus previous year   -3.9   0.3
-    Foreign exchange              -4.3  -1.8
-    Adjusted for foreign exchange  0.4   2.1
-    Acquisitions/divestments      -3.9  -0.4
-    Organic                        4.2   2.6
-    Of which price                 9.6   2.0
-    Of which volume               -5.4   0.6
+    - channel: Wholesale, Direct-to-Consumer
+    - category: Footwear, Apparel, Accessories and Gear
 
-TODO: parse this out of data/raw/Henkel_Report_2024.pdf (FY2023/FY2024) and
-data/raw/Henkel_Report_2025.pdf (FY2024/FY2025), for the Group and both
-segments, and write the result to data/facts/henkel_drivers.json.
+plus narrative call-outs for one-off effects (e.g. the Yeezy wind-down)
+that aren't quantified in a table the way Henkel quantifies
+acquisitions/divestments.
 
-The FY2025 report's restated FY2024 comparatives do not exactly match the
-FY2024 report's own FY2024 figures (see data/raw/README.md) — this needs an
-explicit reconciliation decision (which 2024 baseline is "the" baseline, and
-why), recorded alongside the extracted numbers rather than silently
-overwritten by whichever file is parsed second.
+TODO: parse this out of data/raw/Adidas_Report_2024.pdf (FY2023/FY2024) and
+data/raw/Adidas_Report_2025.pdf (FY2024/FY2025), by channel and category,
+and write the result to data/facts/adidas_drivers.json.
+
+Since there's no numeric FX or one-off effect to subtract out cleanly, the
+extraction needs to record reported (nominal) growth AND currency-neutral
+growth side by side, and treat the gap between them as the FX effect —
+rather than pretending a precision the disclosure doesn't support.
 """
 
 from __future__ import annotations
@@ -28,11 +28,13 @@ from __future__ import annotations
 from src import config as C
 
 
-def extract_bridge(pdf_path, anchor_text: str = "Of which price") -> list[dict]:
-    """Locate sales-bridge tables in a Henkel annual report PDF.
+def extract_growth_breakdown(pdf_path) -> list[dict]:
+    """Locate the channel/category currency-neutral growth figures in an
+    adidas annual report PDF.
 
-    Returns one dict per table found: segment, fiscal years covered, and the
-    nominal/FX/M&A/organic/price/volume figures.
+    Returns one dict per breakdown found: dimension (channel/category),
+    value (e.g. "Wholesale"), fiscal year, reported growth, currency-neutral
+    growth.
     """
     raise NotImplementedError
 

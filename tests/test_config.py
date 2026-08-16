@@ -7,6 +7,7 @@ def test_paths_are_under_root():
 
 
 def test_scope_is_fixed_to_one_company():
-    assert C.COMPANY == "Henkel AG & Co. KGaA"
-    assert C.SEGMENTS == ["Adhesive Technologies", "Consumer Brands"]
+    assert C.COMPANY == "adidas AG"
+    assert C.CHANNELS == ["Wholesale", "Direct-to-Consumer"]
+    assert C.CATEGORIES == ["Footwear", "Apparel", "Accessories and Gear"]
     assert C.FISCAL_YEARS == [2023, 2024, 2025]

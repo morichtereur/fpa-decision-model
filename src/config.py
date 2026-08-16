@@ -9,8 +9,13 @@ RAW = DATA / "raw"
 FACTS = DATA / "facts"
 DB_PATH = DATA / "fpa.duckdb"
 
-COMPANY = "Henkel AG & Co. KGaA"
-SEGMENTS = ["Adhesive Technologies", "Consumer Brands"]
+COMPANY = "adidas AG"
+
+# adidas doesn't disclose a price/volume bridge (checked — see
+# data/raw/README.md). The real driver structure it reports is channel and
+# category splits of currency-neutral growth, so that's what this models.
+CHANNELS = ["Wholesale", "Direct-to-Consumer"]
+CATEGORIES = ["Footwear", "Apparel", "Accessories and Gear"]
 FISCAL_YEARS = [2023, 2024, 2025]
 
 # LLM — only used for the grounded commentary layer, never for the forecast
