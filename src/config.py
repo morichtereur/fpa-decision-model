@@ -30,11 +30,33 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 COMMENTARY_MODEL = os.getenv("COMMENTARY_MODEL", "claude-sonnet-5")
 
 # Browser origins allowed to call the API. Local dev by default; the deployed
-# frontend's origin is added through the environment so the host is not
-# hardcoded here.
+# frontend's origin is added through the environment.
 _DEFAULT_ORIGINS = "http://localhost:3000,http://localhost:3001"
-CORS_ORIGINS = [
-    origin.strip()
-    for origin in os.getenv("CORS_ORIGINS", _DEFAULT_ORIGINS).split(",")
-    if origin.strip()
-]
+
+
+def _clean_origin(value: str) -> str:
+    """An Origin header carries no trailing slash and no quotes. A value typed
+    into a hosting dashboard often carries both, and then silently matches
+    nothing — which looks identical to CORS being broken."""
+    return value.strip().strip('"').strip("'").rstrip("/")
+
+
+# `os.getenv(name, default)` falls back to the default only when the variable
+# is ABSENT. Present-but-empty returns "", which split/filter reduces to [] —
+# allowing no origin at all, including the localhost defaults. That is exactly
+# what an env-var UI produces when a key is added with a blank value, so treat
+# empty as absent.
+# .strip() before the `or`: a whitespace-only value is truthy and would
+# otherwise survive to the same empty result as "".
+_raw_origins = (os.getenv("CORS_ORIGINS") or "").strip() or _DEFAULT_ORIGINS
+CORS_ORIGINS = [o for o in (_clean_origin(p) for p in _raw_origins.split(",")) if o]
+
+# Every Vercel preview deployment gets its own hostname, so an exact list
+# breaks on each branch. Scoped to this project rather than all of
+# *.vercel.app on purpose: with an API key in the environment, this list is
+# what stands between /api/commentary/live and somebody else's browser
+# spending the bill.
+CORS_ORIGIN_REGEX = (
+    os.getenv("CORS_ORIGIN_REGEX")
+    or r"^https://fpa-decision-model[a-z0-9-]*\.vercel\.app$"
+)
