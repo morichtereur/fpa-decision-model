@@ -54,3 +54,19 @@ def test_non_numeric_fields_are_dropped():
     # a number the model could then cite and verify_grounding() would accept.
     assert "actual_flag" not in flat
     assert flat["actual_a"] == 1.0
+
+
+def test_live_endpoint_default_is_neutral_not_the_backtest_label():
+    """The default series name must not claim to be the driver-based forecast.
+
+    /api/commentary/live passes no name, so whatever the default is ends up
+    describing arbitrary slider positions. It used to be `driver_based`, which
+    made a custom stress scenario read as the backtested forecast.
+    """
+    import inspect
+
+    from api.service import generate_live_commentary
+
+    default = inspect.signature(generate_live_commentary).parameters["series_name"].default
+    assert default != "driver_based"
+    assert default == "scenario"
