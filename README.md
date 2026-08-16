@@ -24,7 +24,7 @@ presenting a forecast as if it were a measurement.
 
 **One data-quality finding along the way:** adidas's FY2025 report restates FY2024's product-division mix — Accessories goes from €1,499m as originally reported to €1,779m restated, a ~19% gap ("reclassification within the product divisions," per the report's own footnote). Group-level financials (net sales, EBITDA, operating profit) are *not* restated, only the segment split is — a distinction the model has to preserve rather than flatten into one "2024" number.
 
-This is one backtest point, not a track record — stated as a limit in "What this is not," not hidden behind the table above.
+This is one backtest point, not a track record; see "What this is not" below.
 
 ## The company
 
@@ -32,9 +32,7 @@ This is one backtest point, not a track record — stated as a limit in "What th
 [dax-intelligence](https://github.com/morichtereur/dax-intelligence)
 corpus — sourced separately; see `data/raw/README.md` for download links).
 
-Henkel was the original candidate, because it discloses an explicit
-price/volume/FX bridge. adidas doesn't — checked directly against its
-FY2024 report before committing to it. What adidas discloses instead,
+adidas doesn't disclose a price/volume bridge. What it discloses,
 consistently, is currency-neutral revenue growth broken down by **product
 division** (Footwear, Apparel, Accessories) and **channel** (Wholesale,
 Direct-to-Consumer), with FX visible only as the gap between reported and

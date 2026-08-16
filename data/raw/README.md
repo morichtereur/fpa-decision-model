@@ -13,16 +13,14 @@ Download the following two PDFs and place them in this folder:
 
 ## Why channel/category, not price/volume
 
-Henkel was the original candidate for this project because it discloses an
-explicit quantitative price/volume/FX bridge. adidas does not — checked
-directly against its FY2024 annual report before committing to it. What
-adidas reports instead, consistently, is:
+adidas does not disclose an explicit quantitative price/volume bridge.
+What it reports instead, consistently, is:
 
 - currency-neutral revenue growth (isolates FX)
 - growth by channel: Wholesale vs. Direct-to-Consumer (own retail + e-commerce)
 - growth by category: Footwear, Apparel, Accessories and Gear
 - one-off effects called out narratively (e.g. the Yeezy line's wind-down
-  in 2023–2024), not quantified in a table the way Henkel quantifies M&A
+  in 2023–2024), not quantified in a dedicated table
 
 No unit/pairs-sold volume metric is disclosed either, so there is no way to
 separately isolate "more units" from "higher price per unit" — channel and
