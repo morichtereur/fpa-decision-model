@@ -120,10 +120,12 @@ def run_monte_carlo(facts: dict, n: int = 10_000, seed: int = 0) -> dict:
             "estimate volatility honestly. Capex has no disclosed range; "
             "a +/-5% band was assumed around the guided point figure."
         ),
+        "fcf_draws": fcfs,  # raw array, for charting — stripped before any JSON dump
     }
 
 
 if __name__ == "__main__":
     facts = json.loads((C.FACTS / "adidas_drivers.json").read_text())
     result = run_monte_carlo(facts)
-    print(json.dumps(result, indent=2))
+    printable = {k: v for k, v in result.items() if k != "fcf_draws"}
+    print(json.dumps(printable, indent=2))
