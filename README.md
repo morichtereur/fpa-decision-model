@@ -33,15 +33,15 @@ from. Generation is untrusted by construction; the check is the contract.
 
 ```mermaid
 flowchart LR
-    F[Reported facts<br/>parsed from filings] --> M[Deterministic model<br/>src/model.py]
-    A[Assumptions<br/>explicit, ranged] --> M
-    M --> T[Output table<br/>label → number]
-    T --> L[LLM<br/>writes prose from the table only]
-    L --> P[Draft commentary]
-    T --> V{Verifier<br/>every figure vs. the table}
+    F["Reported facts<br/>parsed from filings"] --> M["Deterministic model<br/>src/model.py"]
+    A["Assumptions<br/>explicit, ranged"] --> M
+    M --> T["Output table<br/>label to number"]
+    T --> L["LLM<br/>writes prose from the table only"]
+    L --> P["Draft commentary"]
+    T --> V{"Verifier<br/>every figure vs. the table"}
     P --> V
-    V -->|grounded| D[Deliverable<br/>with a grounding rate attached]
-    V -->|ungrounded| R[Flagged, not shipped]
+    V -->|grounded| D["Deliverable<br/>grounding rate attached"]
+    V -->|ungrounded| R["Flagged, not shipped"]
 ```
 
 It transfers because nothing in it is about finance. Any domain where a
