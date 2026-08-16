@@ -183,6 +183,40 @@ def out_of_guidance(driver_id: str, value: float) -> bool:
     return value < low or value > high
 
 
+class DriverValueError(ValueError):
+    """A driver value outside the range the model is defined over."""
+
+
+def validate_driver_values(driver_values: dict) -> None:
+    """Names and ranges, checked against drivers.py rather than re-declared.
+
+    The UI cannot produce an out-of-range value — its sliders are bounded by
+    the same spec — so this only ever fires on a hand-made request. Worth
+    having anyway: the endpoint is public, and an unbounded revenue_growth
+    produces confident nonsense rather than an error.
+
+    Note this bounds `min`/`max`, not the narrower `guidance_low`/`_high`.
+    Moving outside the company's disclosed guidance is a deliberate feature
+    (the UI flags it red); leaving the model's own domain is not.
+    """
+    config = get_driver_config()
+    known = set(config)
+    unknown = sorted(set(driver_values) - known)
+    if unknown:
+        raise DriverValueError(f"Unknown driver(s): {unknown}")
+    missing = sorted(known - set(driver_values))
+    if missing:
+        raise DriverValueError(f"Missing driver(s): {missing}")
+
+    for name, spec in config.items():
+        value = driver_values[name]
+        low, high = spec.get("min"), spec.get("max")
+        if low is not None and value < low:
+            raise DriverValueError(f"{name}={value} is below the minimum of {low}")
+        if high is not None and value > high:
+            raise DriverValueError(f"{name}={value} is above the maximum of {high}")
+
+
 def compute_scenario(driver_values: dict) -> dict:
     base_values = base_driver_values()
     base_forecast = run_forecast(base_values)

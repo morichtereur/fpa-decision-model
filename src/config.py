@@ -22,12 +22,18 @@ CATEGORIES = ["Footwear", "Apparel", "Accessories and Gear"]
 FISCAL_YEARS = [2023, 2024, 2025]
 
 # LLM — only used for the grounded commentary layer, never for the forecast
-# numbers themselves. Deliberately absent on the public deployment: preset
-# commentary is served from the committed data/commentary.json, and the live
-# endpoint returns a 503 rather than putting a billable key behind an open
-# button.
+# numbers themselves. The deployment does hold a key, scoped to its own
+# Anthropic workspace with a monthly spend cap: that cap, not the code, is
+# what bounds the damage on a public endpoint. Without a key the live
+# endpoint returns 503 and preset commentary still works, served from the
+# committed data/commentary.json.
+#
+# Haiku by default: p2p-process-mining measured Haiku 4.5 matching Sonnet 5
+# on citation grounding (100% on both) at roughly a third of the cost, and
+# this layer does the same job — prose over a numbers table it must not
+# depart from.
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-COMMENTARY_MODEL = os.getenv("COMMENTARY_MODEL", "claude-sonnet-5")
+COMMENTARY_MODEL = os.getenv("COMMENTARY_MODEL", "claude-haiku-4-5-20251001")
 
 # Browser origins allowed to call the API. Local dev by default; the deployed
 # frontend's origin is added through the environment.

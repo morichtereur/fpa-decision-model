@@ -70,14 +70,17 @@ def test_every_preset_resolves_and_matches_direct_model_call(facts):
         assert api_result["free_cash_flow"] == pytest.approx(direct["free_cash_flow"], rel=1e-9), preset_id
 
 
+# 422, not 400: driver names, driver ranges and body shape are all content
+# validation, and FastAPI already answers 422 for a malformed body. Splitting
+# them across two codes made the surface inconsistent for no gain.
 def test_scenario_rejects_unknown_driver():
     response = client.post("/api/scenario", json={"driver_values": {"not_a_real_driver": 1.0}})
-    assert response.status_code == 400
+    assert response.status_code == 422
 
 
 def test_scenario_rejects_missing_driver():
     response = client.post("/api/scenario", json={"driver_values": {"revenue_growth": 8.0}})
-    assert response.status_code == 400
+    assert response.status_code == 422
 
 
 def test_out_of_guidance_flag_is_set_when_a_driver_exceeds_its_disclosed_range():

@@ -28,6 +28,15 @@ class ScenarioRequest(BaseModel):
     driver_values: dict[str, float]
 
 
+def _validate(driver_values: dict) -> None:
+    """Names and ranges come from drivers.py — the same spec the sliders are
+    built from — so the API and the UI cannot drift apart."""
+    try:
+        service.validate_driver_values(driver_values)
+    except service.DriverValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
@@ -50,13 +59,7 @@ def presets():
 
 @app.post("/api/scenario")
 def scenario(req: ScenarioRequest):
-    known = set(service.get_driver_config().keys())
-    unknown = set(req.driver_values) - known
-    if unknown:
-        raise HTTPException(400, f"Unknown driver(s): {sorted(unknown)}")
-    missing = known - set(req.driver_values)
-    if missing:
-        raise HTTPException(400, f"Missing driver(s): {sorted(missing)}")
+    _validate(req.driver_values)
     return service.compute_scenario(req.driver_values)
 
 
@@ -96,7 +99,8 @@ def commentary(scenario_id: str):
 def commentary_live(req: ScenarioRequest):
     if not C.ANTHROPIC_API_KEY:
         raise HTTPException(503, "ANTHROPIC_API_KEY not set — commentary unavailable.")
-    known = set(service.get_driver_config().keys())
-    if set(req.driver_values) != known:
-        raise HTTPException(400, f"Expected exactly these drivers: {sorted(known)}")
+    # Validate before the billable call, not after: this endpoint is public,
+    # and an out-of-range value would otherwise spend a request to produce
+    # confident nonsense.
+    _validate(req.driver_values)
     return service.generate_live_commentary(req.driver_values)
