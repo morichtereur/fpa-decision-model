@@ -68,22 +68,22 @@ def write(backtest_result: dict) -> tuple[str, dict]:
     alongside the text because verify_grounding() needs the exact same
     table the LLM was shown, not a freshly recomputed one that could have
     drifted."""
-    # Imported here rather than at module scope: verify_grounding() is the
-    # tested half and needs no SDK, and the deployed API never calls write()
-    # — so the serverless bundle can leave the dependency out entirely.
-    from anthropic import Anthropic
+    # Resolved here rather than at module scope: verify_grounding() is the
+    # tested half of the trust layer and must import without an SDK or a key.
+    from src.provider import get_provider
 
     outputs = _flatten_outputs(backtest_result)
-    client = Anthropic(api_key=C.ANTHROPIC_API_KEY)
     table_text = "\n".join(f"{k}: {v}" for k, v in outputs.items())
-    msg = client.messages.create(
-        model=C.COMMENTARY_MODEL,
-        max_tokens=450,  # headroom so a longer scenario (more divergent metrics) doesn't truncate mid-number
+    completion = get_provider().complete(
         system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": f"Numbers table:\n{table_text}"}],
+        user=f"Numbers table:\n{table_text}",
+        model=C.COMMENTARY_MODEL,
+        # Headroom so a longer scenario (more divergent metrics) doesn't
+        # truncate mid-number — a cut-off figure would fail verification and
+        # look like a hallucination.
+        max_tokens=450,
     )
-    text = "".join(b.text for b in msg.content if b.type == "text")
-    return text, outputs
+    return completion.text, outputs
 
 
 _NUMBER_RE = re.compile(

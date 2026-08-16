@@ -49,6 +49,13 @@ calculation exists and prose must describe it — actuarial results, clinical
 readouts, regulatory reporting, cost models — has the same shape: a trusted
 computation, an untrusted narrator, and a check between them.
 
+It also does not depend on a vendor. Generation sits behind
+`src/provider.py`, whose whole contract is a system prompt, a user prompt and
+text back — the common denominator across the Anthropic API, Bedrock, Vertex
+and OpenAI-compatible endpoints. Swapping providers is one class and an
+environment variable. The forecast never calls a model at all, so none of the
+numbers depend on that choice.
+
 ### What the guardrail does not catch
 
 A grounding rate measures the model. `eval/eval_verifier.py` measures the
