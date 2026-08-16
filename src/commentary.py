@@ -59,7 +59,7 @@ def write(backtest_result: dict) -> tuple[str, dict]:
     table_text = "\n".join(f"{k}: {v}" for k, v in outputs.items())
     msg = client.messages.create(
         model=C.COMMENTARY_MODEL,
-        max_tokens=300,
+        max_tokens=450,  # headroom so a longer scenario (more divergent metrics) doesn't truncate mid-number
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": f"Numbers table:\n{table_text}"}],
     )
@@ -103,8 +103,12 @@ def verify_grounding(commentary: str, outputs: dict, tolerance: float = 0.05) ->
 
     grounded, ungrounded = [], []
     for raw, parsed in claims:
+        # Natural-language error phrasing ("missed by 22.3%") states a
+        # negative table value's magnitude without its sign, so a claim
+        # grounds against either the signed or the absolute table value.
         is_grounded = any(
-            v != 0 and abs(parsed - v) / abs(v) <= tolerance for v in values
+            v != 0 and (abs(parsed - v) / abs(v) <= tolerance or abs(abs(parsed) - abs(v)) / abs(v) <= tolerance)
+            for v in values
         )
         (grounded if is_grounded else ungrounded).append(raw)
 

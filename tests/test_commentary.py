@@ -38,3 +38,14 @@ def test_empty_commentary_has_no_claims():
     result = verify_grounding("No numeric claims here at all.", OUTPUTS)
     assert result["total_claims"] == 0
     assert result["grounding_rate"] is None
+
+
+def test_magnitude_of_a_negative_table_value_grounds_without_its_sign():
+    # The table stores naive_operating_profit_error_pct as -22.3 (signed:
+    # forecast came in under actual). Natural-language phrasing states the
+    # magnitude of a miss without repeating the sign -- "missed by 22.3%",
+    # not "missed by -22.3%". That's not a fabrication and shouldn't be
+    # flagged as one.
+    text = "The naive forecast missed operating profit by 22.3%."
+    result = verify_grounding(text, OUTPUTS)
+    assert result["grounding_rate"] == 1.0

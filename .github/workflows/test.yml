@@ -21,3 +21,21 @@ jobs:
       # Commentary grounding logic is unit-tested with synthetic text —
       # the live API call itself is never exercised in CI.
       - run: pytest tests/ -v
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      # NEXT_PUBLIC_API_BASE isn't needed to type-check and build — the
+      # cockpit fetches from it at runtime, not at build time.
+      - run: npm run build

@@ -1,0 +1,52 @@
+{
+  "base": {
+    "text": "Actual revenue came in at 24,811 against a naive forecast of 26,176.5, a miss of 5.5% (naive overstated revenue), while the driver-based model forecast 25,585.2, overstating actual by 3.1%. On operating profit, actual was 2,056 versus the naive forecast of 1,596.5, an understatement of 22.3%, and the driver-based forecast of 1,750.0 also understated actual, missing by 14.9%. Free cash flow actual was 1,106.4; the naive forecast of 1,270.2 overstated it by 14.8%, whereas the driver-based forecast of 1,069.2 understated it by 3.4%. Across all three metrics, the driver-based model produced smaller absolute errors than the naive model. The driver-based buildup shows EBITDA of 2,968.2, D&A of 1,218.2, tax of 463.7, and a working capital increase of 835.3 against capex of 600, netting to the 1,069.2 free cash flow figure.",
+    "grounding": {
+      "total_claims": 21,
+      "grounded": 21,
+      "ungrounded": [],
+      "grounding_rate": 1.0
+    },
+    "generated_at": "2026-08-16T09:44:05.776202+00:00"
+  },
+  "upside": {
+    "text": "Actual revenue came in at 24,811 against a naive forecast of 26,176.5 (5.5% too high) and a driver-based forecast of 25,822.1 (4.1% too high), so both models overshot actual revenue, with the driver-based model closer. On operating profit, actual was 2,056 versus a naive forecast of 1,596.5, understating actual by 22.3%, while the driver-based forecast of 2,024.4 was much closer, missing by only 1.5%. Free cash flow actual was 1,106.4, and both forecasts overstated it \u2014 naive at 1,270.2 (14.8% high) and driver-based at 1,360.4, which missed by more at 23.0% high, making it the weakest result among the six comparisons. Overall, the driver-based approach was more accurate on revenue and substantially more accurate on operating profit, but it underperformed the naive method on free cash flow.",
+    "grounding": {
+      "total_claims": 15,
+      "grounded": 15,
+      "ungrounded": [],
+      "grounding_rate": 1.0
+    },
+    "generated_at": "2026-08-16T09:44:10.117629+00:00"
+  },
+  "downside": {
+    "text": "Actual revenue came in at 24,811 against a naive forecast of 26,176.5 (5.5% too high) and a driver-based forecast of 25,348.3 (2.2% too high), so both models overshot actual revenue, with the driver-based estimate closer. Operating profit actuals reached 2,056, well above both forecasts: the naive model's 1,596.5 missed by -22.3% and the driver-based model's 1,480.3 missed by -28.0%, meaning both understated profitability, with the driver-based model further off despite its better revenue call. Free cash flow actuals were 1,106.4; the naive forecast of 1,270.2 overstated actual FCF by 14.8%, while the driver-based forecast of 783.9 understated it by -29.1%. The driver-based build shows EBITDA of 2,687.3 less D&A of 1,207.0 producing operating profit of 1,480.3, then tax of 392.3 to NOPAT of 1,088.0, reduced by a working capital change of 911.1 and capex of 600 to reach the 783.9 FCF figure. Overall, the driver-based model tracked revenue more tightly but produced larger errors on operating profit and free cash flow than the naive model.",
+    "grounding": {
+      "total_claims": 23,
+      "grounded": 23,
+      "ungrounded": [],
+      "grounding_rate": 1.0
+    },
+    "generated_at": "2026-08-16T09:44:15.286113+00:00"
+  },
+  "wc_stress": {
+    "text": "Actual revenue came in at 24,811 against a naive forecast of 26,176.5, a 5.5% overshoot, while the driver-based model's 25,585.2 estimate missed by a smaller 3.1%. Operating profit actuals of 2,056 undershot both models' expectations: the naive forecast of 1,596.5 missed by -22.3% and the driver-based forecast of 1,750.0 missed by -14.9%, with actuals exceeding both. Free cash flow actuals of 1,106.4 were overestimated by the naive model's 1,270.2 (14.8% error) but badly underestimated by the driver-based model's 429.6, a -61.2% miss, the largest error of the set. Overall, the driver-based model was more accurate on revenue and operating profit, but its free cash flow forecast diverged sharply from actuals despite a working capital build of 1,474.9 and capex of 600 embedded in that estimate.",
+    "grounding": {
+      "total_claims": 17,
+      "grounded": 17,
+      "ungrounded": [],
+      "grounding_rate": 1.0
+    },
+    "generated_at": "2026-08-16T09:44:19.091579+00:00"
+  },
+  "margin_compression": {
+    "text": "Actual revenue came in at 24,811 against a naive forecast of 26,176.5, a 5.5% overshoot, while the driver-based model forecast 25,585.2, missing by 3.1%. Operating profit was more problematic: actual operating profit of 2,056 was well above both forecasts, with the naive model at 1,596.5 (-22.3% error) and the driver-based model at 1,238.3, understating actual by 39.8%. Free cash flow also missed on both sides of the actual 1,106.4: the naive figure of 1,270.2 overstated by 14.8%, while the driver-based figure of 693.1 understated by 37.4%. Across all three metrics, the driver-based model produced the smaller error only on revenue (3.1% vs 5.5%), but it was substantially less accurate than the naive model on operating profit and free cash flow, with errors of -39.8% and -37.4% respectively.",
+    "grounding": {
+      "total_claims": 19,
+      "grounded": 19,
+      "ungrounded": [],
+      "grounding_rate": 1.0
+    },
+    "generated_at": "2026-08-16T09:44:23.284521+00:00"
+  }
+}
