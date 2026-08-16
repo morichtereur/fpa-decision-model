@@ -1,6 +1,4 @@
-duckdb
 numpy
-matplotlib
 anthropic
 pypdf
 python-dotenv

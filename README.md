@@ -10,13 +10,21 @@ assumptions and calculated outputs, then traces channel and category growth
 through to EBITDA and free cash flow for one real company — rather than
 presenting a forecast as if it were a measurement.
 
-## Status
+## Key finding
 
-Scaffolding only — no forecast has been run yet. This README states the
-method and the company/data source now, and will be replaced by an actual
-finding once `src/extract.py`, `src/model.py`, `src/scenario.py` and
-`src/backtest.py` are implemented. Nothing below the Method section is a
-result; it is a plan.
+**Yes, on every metric — but both forecasts still missed by a lot, because adidas beat its own guidance.** Built as of FY2024 using only that year's data and adidas's own stated FY2025 outlook, the driver-based model's error was smaller than a naive extrapolation's on revenue (3.1% vs. 5.5%), operating profit (14.9% vs. 22.3%) and free cash flow (3.4% vs. 14.8%). Both undershot actual FY2025 operating profit — adidas guided €1.7-1.8bn and delivered €2,056m — so "the driver-based model won" is not the same claim as "the driver-based model was accurate."
+
+| metric | naive error | driver-based error |
+|---|---|---|
+| revenue | 5.5% | 3.1% |
+| operating profit | 22.3% | 14.9% |
+| free cash flow | 14.8% | 3.4% |
+
+**The dominant source of forecast uncertainty is working capital, not growth.** A Monte Carlo run over adidas's own disclosed FY2025 guidance ranges (not invented historical volatility — three fiscal years is too few to estimate that honestly) shows free cash flow correlates with working-capital assumptions at -0.92, versus -0.19 for revenue growth. The naive method's biggest miss was exactly this: it held working capital % of sales flat at FY2024's level, but it rose from 19.7% to 23.0% in FY2025 — a real cash drag a growth-only extrapolation cannot see.
+
+**One data-quality finding along the way:** adidas's FY2025 report restates FY2024's product-division mix — Accessories goes from €1,499m as originally reported to €1,779m restated, a ~19% gap ("reclassification within the product divisions," per the report's own footnote). Group-level financials (net sales, EBITDA, operating profit) are *not* restated, only the segment split is — a distinction the model has to preserve rather than flatten into one "2024" number.
+
+This is one backtest point, not a track record — stated as a limit in "What this is not," not hidden behind the table above.
 
 ## The company
 
@@ -27,84 +35,86 @@ corpus — sourced separately; see `data/raw/README.md` for download links).
 Henkel was the original candidate, because it discloses an explicit
 price/volume/FX bridge. adidas doesn't — checked directly against its
 FY2024 report before committing to it. What adidas discloses instead,
-consistently, is currency-neutral revenue growth broken down by **channel**
-(Wholesale vs. Direct-to-Consumer) and **category** (Footwear, Apparel,
-Accessories and Gear), with FX visible only as the gap between reported and
-currency-neutral growth, and one-off effects (the Yeezy wind-down) called
-out narratively rather than quantified. That's a real constraint, not an
-oversight: the model's driver granularity is bounded by what the company
-actually discloses, and that bound is part of the finding, stated in
-`data/raw/README.md` rather than smoothed over.
-
-Three fiscal years is a thin backtest sample — one point, not a track
-record. That limit is stated here rather than hidden behind a
-confident-looking chart.
+consistently, is currency-neutral revenue growth broken down by **product
+division** (Footwear, Apparel, Accessories) and **channel** (Wholesale,
+Direct-to-Consumer), with FX visible only as the gap between reported and
+currency-neutral growth. That's a real constraint, not an oversight: the
+model's driver granularity is bounded by what the company actually
+discloses.
 
 ## Method
 
 **Data → model → result → decision implication → evaluation**
 
-1. **Facts** (`src/extract.py`) — channel and category currency-neutral
-   growth, parsed out of the two source PDFs into `data/facts/`, kept
-   separate from anything assumed.
-2. **Model** (`src/model.py`) — a driver-based forecast: explicit planning
-   assumptions per channel and category, traced through to EBITDA and free
-   cash flow, with every output traceable back to the fact or assumption
-   that produced it.
-3. **Scenario** (`src/scenario.py`) — Monte Carlo over each driver, with
-   ranges derived from the three years of measured historical volatility
-   rather than assumed spreads. The point is which assumption explains the
-   most output variance, not the simulation itself.
-4. **Backtest** (`src/backtest.py`) — the actual test of the core question:
-   build the model as of FY2024 using only 2023–2024 data and adidas's own
-   stated FY2025 guidance, forecast FY2025, and compare both the
-   driver-based forecast and a naive top-down extrapolation against FY2025
-   actuals. Whichever wins, or by how little, is the finding.
+1. **Facts** (`src/extract.py`) — net sales, EBITDA, operating profit,
+   margins, working capital %, capex, product-division and channel splits,
+   and adidas's own FY2025 guidance, parsed out of the two source PDFs into
+   `data/facts/adidas_drivers.json`. Both the originally-reported and
+   later-restated versions of FY2024 are kept, tagged by source — never
+   silently overwritten.
+2. **Model** (`src/model.py`) — a driver-based forecast: per-division
+   revenue growth, an EBITDA margin assumption, a working-capital % and a
+   capex figure, traced through D&A, tax and the change in working capital
+   to free cash flow. adidas doesn't report FCF directly — it's derived as
+   NOPAT + D&A − ΔWC − capex, a modeling choice stated here, not presented
+   as if adidas disclosed it.
+3. **Backtest** (`src/backtest.py`) — the naive extrapolation (FY2023→FY2024
+   growth rate continued, margins held flat) versus the driver-based
+   forecast (FY2024 data + adidas's stated FY2025 guidance), both checked
+   against FY2025 actuals. See Key finding above.
+4. **Scenario** (`src/scenario.py`) — Monte Carlo over adidas's own
+   disclosed guidance ranges (not historical volatility — see Key finding).
+   Reports which assumption's variance explains the most FCF variance.
 5. **Commentary** (`src/commentary.py`) — an LLM writes management
-   commentary from the calculated output table only, never from raw source
-   text. Every number it states is checked back against that table, and
-   the grounding rate is reported alongside the forecast — the same
-   standard dax-intelligence applies to its citations.
+   commentary from the backtest's output table only, never from raw source
+   text. Every number it states is regex-extracted and checked back
+   against that table; a live run scored a 100% grounding rate (15/15
+   claims), reported alongside the forecast rather than assumed.
 
 ## Stack
 
-`Python` · `DuckDB` · `NumPy` · `matplotlib` · `LLM API` · `pytest`
+`Python` · `NumPy` · `pypdf` · `LLM API` · `pytest`
 
 ## Repository map
 
 | path | responsibility |
 |---|---|
-| `src/config.py` | company/channel/category/fiscal-year scope, paths, env vars |
-| `src/extract.py` | parse the channel/category growth bridge out of the source PDFs |
+| `src/config.py` | company/fiscal-year scope, paths, env vars |
+| `src/extract.py` | parse financials, division/channel splits and guidance out of the source PDFs |
 | `src/model.py` | driver-based forecast: facts + assumptions → EBITDA/FCF |
-| `src/scenario.py` | Monte Carlo over historical driver volatility |
 | `src/backtest.py` | driver-based vs. naive forecast, checked against actuals |
+| `src/scenario.py` | Monte Carlo over adidas's disclosed guidance ranges |
 | `src/commentary.py` | grounded LLM commentary + numeric verification |
 | `data/raw/` | source PDFs (not committed — see `data/raw/README.md`) |
-| `data/facts/` | extracted, structured driver data |
-| `tests/` | deterministic checks, no API calls |
+| `data/facts/adidas_drivers.json` | extracted, structured driver data (committed — small, fully derived) |
+| `tests/` | extraction, model, backtest, scenario and grounding checks |
 
 ## Run it
 
 ```bash
-cp .env.example .env      # Anthropic key, needed only for src/commentary.py
 python3 -m venv .venv && source .venv/bin/activate
 make install
+make test                 # extraction/backtest/scenario tests skip gracefully without the PDFs
+
+cp .env.example .env      # Anthropic key, needed only for src/commentary.py
 # place the two Adidas PDFs in data/raw/ — see data/raw/README.md
-make extract
-make backtest
-make test
+make extract               # -> data/facts/adidas_drivers.json
+make backtest               # -> naive vs. driver-based forecast, checked against actuals
+make scenario               # -> Monte Carlo + sensitivity ranking
+python -m src.commentary    # -> grounded management commentary (needs .env)
 ```
 
 ## What this is not
 
-- **A finished forecast.** See Status above.
 - **A multi-company benchmark.** One company, two driver dimensions
-  (channel, category), three fiscal years — depth over breadth, matching
-  the rest of this portfolio.
+  (product division, channel), three fiscal years — depth over breadth,
+  matching the rest of this portfolio.
 - **A price/volume analysis.** adidas doesn't disclose that split; see
-  "The company" above. Channel and category growth are the real drivers
-  used here, not a proxy for price/volume.
+  "The company" above. Product division and channel growth are the real
+  drivers used here, not a proxy for price/volume.
+- **A track record.** One backtest point (FY2024 → FY2025). A single win
+  is not evidence the driver-based approach generalizes; it's evidence it
+  beat one naive baseline once, on data available at the time.
 - **A trading or investment signal.** This is a methodology exercise on
   public financial disclosures, not analysis intended to inform an
   investment decision.

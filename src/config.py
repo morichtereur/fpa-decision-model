@@ -3,11 +3,14 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 RAW = DATA / "raw"
 FACTS = DATA / "facts"
-DB_PATH = DATA / "fpa.duckdb"
 
 COMPANY = "adidas AG"
 

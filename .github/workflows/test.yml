@@ -14,7 +14,10 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements-dev.txt
-      # No API key needed yet — the suite covers the deterministic parts
-      # only. It will stay that way: the forecast and backtest must never
-      # depend on a live LLM call to be checkable.
+      # No API key or source PDFs needed: the extracted facts JSON is
+      # committed (small, fully derived), so model/backtest/scenario tests
+      # run against it directly. Only the extraction tests need the
+      # gitignored source PDFs, and skip gracefully without them.
+      # Commentary grounding logic is unit-tested with synthetic text —
+      # the live API call itself is never exercised in CI.
       - run: pytest tests/ -v
