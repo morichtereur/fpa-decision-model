@@ -13,7 +13,7 @@ from functools import lru_cache
 
 import numpy as np
 
-from src import backtest, commentary, config as C, drivers, model, scenario
+from src import backtest, claims, commentary, config as C, drivers, model, scenario
 
 DRIVER_ORDER = ["revenue_growth", "ebitda_margin", "working_capital_pct", "capex_eur_m", "tax_rate_pct"]
 DRIVER_TO_ASSUMPTION_KEY = {
@@ -325,4 +325,14 @@ def generate_live_commentary(driver_values: dict, series_name: str = "scenario")
     }
     text, outputs, provenance = commentary.write(pseudo_backtest_result)
     grounding = commentary.verify_grounding(text, outputs)
-    return {"text": text, "grounding": grounding, "provenance": provenance}
+    # Two independent questions. Grounding: is this number in the table?
+    # Coherence: is it being used to say something the table supports? A
+    # paragraph can pass the first completely and fail the second, which is
+    # exactly what the published presets did.
+    coherence = claims.verify_claims(text, claims.index_outputs(pseudo_backtest_result))
+    return {
+        "text": text,
+        "grounding": grounding,
+        "coherence": coherence,
+        "provenance": provenance,
+    }

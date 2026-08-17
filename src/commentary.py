@@ -34,8 +34,15 @@ Rules:
 - Use ONLY the numbers in the table you are given. Do not compute, estimate, \
 round to a different precision than shown, or bring in any figure not present \
 in the table.
-- State the comparison plainly: what the forecast said, what actually happened, \
-and by how much it missed, in the direction it missed.
+- Every `_error_pct` value is a FORECAST ERROR measured against actual. Write \
+it that way: "the forecast missed actual by X%", "the forecast overstated \
+revenue by X%". Never re-express it as actual beating or exceeding a forecast \
+by that percentage. That is a different quantity with a different denominator, \
+it is always larger, and you are not permitted to compute it — so if you want \
+to say actual came in above a forecast, say so without attaching a percentage.
+- Check direction against the figures themselves before writing it: the larger \
+number is the larger one. A forecast below actual understated it; a forecast \
+above actual overstated it.
 - No hedging language ("may", "could suggest") about numbers that are already \
 known facts in the table.
 - Plain prose, no headers or bullet points."""

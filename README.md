@@ -87,9 +87,46 @@ every check. That is not hypothetical: it is exactly how a stress scenario in
 this repository came to be described as the driver-based forecast with every
 number in the sentence real.
 
-Claim-level checking closes the second gap; a tolerance is a poor instrument
-for the first. Both are open, and stated here rather than discovered by a
-reader.
+### The second layer: is the number used correctly?
+
+Grounding asks whether a figure exists in the table. `src/claims.py` asks
+whether the sentence built from it says something the table supports —
+deterministically, sentence by sentence, with no second model involved. Three
+checks, each written against a failure the published output actually
+contained:
+
+| check | what it catches |
+|---|---|
+| `direction` | a comparison whose arithmetic contradicts its verb |
+| `comparison_base` | a forecast error re-labelled as an outperformance |
+| `attribution` | a real value quoted under a metric it does not belong to |
+
+Run against the five preset paragraphs that were committed to this repository
+— every one of them scoring a grounding rate of 1.0 — it returns **seven
+findings across three of them**. The clearest:
+
+> "actual results of 2,056 fell short of the driver-based forecast of 1,750.0
+> by 14.9 percent"
+
+2,056 is larger than 1,750. Both figures are real, so grounding passes; the
+sentence states the central finding of this project backwards.
+
+The second check is the one worth understanding, because the cause was the
+prompt rather than the model. The table stores `*_error_pct` as
+(forecast − actual) / actual — the forecast's error, measured against actual.
+The outperformance of actual over that forecast has a different denominator
+and is always the larger number. Since the prompt forbids computing anything,
+a model asked to describe a beat has no correct figure available and reaches
+for the nearest one, producing "beating it by 22.3%" where the answer is
+28.8%. The rule meant to prevent invention was manufacturing a specific,
+repeatable error. The prompt now pins the framing to what the table actually
+supports.
+
+`make commentary` is a gate rather than a report: a paragraph that fails
+either check is not written, and the command exits non-zero.
+
+That leaves near-miss drift, where a tolerance is a poor instrument, open and
+stated here rather than discovered by a reader.
 
 ## Decision implication
 
