@@ -52,9 +52,16 @@ computation, an untrusted narrator, and a check between them.
 It also does not depend on a vendor. Generation sits behind
 `src/provider.py`, whose whole contract is a system prompt, a user prompt and
 text back — the common denominator across the Anthropic API, Bedrock, Vertex
-and OpenAI-compatible endpoints. Swapping providers is one class and an
-environment variable. The forecast never calls a model at all, so none of the
-numbers depend on that choice.
+and OpenAI-compatible endpoints. Two are implemented: the Anthropic API
+directly, and Amazon Bedrock through its OpenAI-compatible endpoint. Switching
+is `LLM_PROVIDER=bedrock` in `.env` and nothing else, and each provider carries
+its own default model id — a model name is only meaningful relative to the
+endpoint that serves it. The forecast never calls a model at all, so none of
+the numbers depend on that choice.
+
+Every stored commentary records the provider, model and token usage that
+produced it. Generated financial prose without that attribution cannot be
+checked later against the vendor it is supposed to have come from.
 
 ### What the guardrail does not catch
 

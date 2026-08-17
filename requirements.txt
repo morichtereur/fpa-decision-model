@@ -1,6 +1,7 @@
 numpy
 matplotlib
 anthropic
+openai
 pypdf
 python-dotenv
 fastapi

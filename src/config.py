@@ -23,17 +23,33 @@ FISCAL_YEARS = [2023, 2024, 2025]
 
 # LLM — only used for the grounded commentary layer, never for the forecast
 # numbers themselves. The deployment does hold a key, scoped to its own
-# Anthropic workspace with a monthly spend cap: that cap, not the code, is
-# what bounds the damage on a public endpoint. Without a key the live
-# endpoint returns 503 and preset commentary still works, served from the
-# committed data/commentary.json.
+# workspace with a monthly spend cap: that cap, not the code, is what bounds
+# the damage on a public endpoint. Without a key the live endpoint returns 503
+# and preset commentary still works, served from the committed
+# data/commentary.json.
 #
-# Haiku by default: p2p-process-mining measured Haiku 4.5 matching Sonnet 5
-# on citation grounding (100% on both) at roughly a third of the cost, and
-# this layer does the same job — prose over a numbers table it must not
-# depart from.
+# Which vendor serves it is `LLM_PROVIDER` — see src/provider.py. Two are
+# implemented: the Anthropic API directly, and Amazon Bedrock through its
+# OpenAI-compatible endpoint.
+LLM_PROVIDER = (os.getenv("LLM_PROVIDER") or "anthropic").strip().lower()
+
+# Anthropic. Haiku by default: p2p-process-mining measured Haiku 4.5 matching
+# Sonnet 5 on citation grounding (100% on both) at roughly a third of the
+# cost, and this layer does the same job — prose over a numbers table it must
+# not depart from.
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-COMMENTARY_MODEL = os.getenv("COMMENTARY_MODEL", "claude-haiku-4-5-20251001")
+
+# Bedrock, via its OpenAI-compatible endpoint. The base URL carries the
+# region. OPENAI_* are accepted as fallbacks because that is what the Bedrock
+# console hands you and what the `openai` SDK reads by default — but the
+# BEDROCK_-prefixed names are preferred, since a variable called
+# OPENAI_API_KEY holding a Bedrock key is a trap for the next reader.
+BEDROCK_API_KEY = os.getenv("BEDROCK_API_KEY") or os.getenv("OPENAI_API_KEY", "")
+BEDROCK_BASE_URL = os.getenv("BEDROCK_BASE_URL") or os.getenv("OPENAI_BASE_URL", "")
+
+# Empty means "whatever the active provider's default is". A single hardcoded
+# model id would name a model that only one of the providers can serve.
+COMMENTARY_MODEL = os.getenv("COMMENTARY_MODEL", "").strip()
 
 # Browser origins allowed to call the API. Local dev by default; the deployed
 # frontend's origin is added through the environment.

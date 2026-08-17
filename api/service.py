@@ -323,6 +323,6 @@ def generate_live_commentary(driver_values: dict, series_name: str = "scenario")
             "free_cash_flow_error_pct": (scenario_forecast["free_cash_flow"] - bt["actual"]["free_cash_flow"]) / bt["actual"]["free_cash_flow"] * 100,
         },
     }
-    text, outputs = commentary.write(pseudo_backtest_result)
+    text, outputs, provenance = commentary.write(pseudo_backtest_result)
     grounding = commentary.verify_grounding(text, outputs)
-    return {"text": text, "grounding": grounding}
+    return {"text": text, "grounding": grounding, "provenance": provenance}

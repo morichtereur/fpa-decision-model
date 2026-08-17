@@ -63,27 +63,39 @@ def _flatten_outputs(backtest_result: dict) -> dict:
     return flat
 
 
-def write(backtest_result: dict) -> tuple[str, dict]:
-    """Returns (commentary_text, outputs_table) — the table is returned
-    alongside the text because verify_grounding() needs the exact same
-    table the LLM was shown, not a freshly recomputed one that could have
-    drifted."""
+def write(backtest_result: dict) -> tuple[str, dict, dict]:
+    """Returns (commentary_text, outputs_table, provenance).
+
+    The table is returned alongside the text because verify_grounding() needs
+    the exact same table the LLM was shown, not a freshly recomputed one that
+    could have drifted.
+
+    Provenance names the provider and model that produced the text. Without
+    it, a stored commentary is a paragraph of prose with no way to tell which
+    vendor wrote it — and "which model produced this number" is the first
+    question anyone asks of generated financial text.
+    """
     # Resolved here rather than at module scope: verify_grounding() is the
     # tested half of the trust layer and must import without an SDK or a key.
     from src.provider import get_provider
 
     outputs = _flatten_outputs(backtest_result)
     table_text = "\n".join(f"{k}: {v}" for k, v in outputs.items())
-    completion = get_provider().complete(
+    provider = get_provider()
+    # Empty config means "this provider's own default": a model id is only
+    # meaningful relative to the endpoint that serves it.
+    model = C.COMMENTARY_MODEL or provider.default_model
+    completion = provider.complete(
         system=SYSTEM_PROMPT,
         user=f"Numbers table:\n{table_text}",
-        model=C.COMMENTARY_MODEL,
+        model=model,
         # Headroom so a longer scenario (more divergent metrics) doesn't
         # truncate mid-number — a cut-off figure would fail verification and
         # look like a hallucination.
         max_tokens=450,
     )
-    return completion.text, outputs
+    provenance = {"provider": provider.name, "model": model, "usage": completion.usage}
+    return completion.text, outputs, provenance
 
 
 _NUMBER_RE = re.compile(
