@@ -83,6 +83,15 @@ def assumptions():
     return service.get_assumption_register()
 
 
+@app.get("/api/variance/{metric}")
+def variance_bridge(metric: str = "free_cash_flow"):
+    """Forecast-to-actual variance decomposed across the five drivers."""
+    try:
+        return service.get_variance_bridge(metric)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
 @app.get("/api/commentary/{scenario_id}")
 def commentary(scenario_id: str):
     if scenario_id not in drivers.PRESETS:

@@ -139,6 +139,36 @@ either check is not written, and the command exits non-zero.
 That leaves near-miss drift, where a tolerance is a poor instrument, open and
 stated here rather than discovered by a reader.
 
+## Why the forecast missed
+
+Measuring the miss is the easy half. `src/variance.py` walks the five drivers
+from their forecast values to what FY2025 actually delivered, one at a time,
+and attributes the movement in free cash flow to each (`GET /api/variance/free_cash_flow`):
+
+| driver | forecast | actual | impact on FCF |
+|---|---|---|---|
+| Revenue growth | 8.0% | 4.8% | +€90m |
+| EBITDA margin | 11.6% | 12.6% | +€181m |
+| Effective tax rate | 26.5% | 24.3% | +€43m |
+| **Working capital** | **21.5%** | **23.0%** | **−€372m** |
+| Capex | €600m | €477m | +€123m |
+| *residual (model structure)* | | | *−€27m* |
+| **net variance** | | | **+€37m** |
+
+The headline number is the last row and the finding is everything above it.
+Free cash flow came in €37m from the forecast — close enough to read as a
+forecast that worked. It is €808m of gross driver error that happened to
+cancel. Every one of the five assumptions was wrong, and the one that was
+wrong by most is working capital, which is also the one nobody argues about in
+the quarterly review.
+
+Two deliberate properties. The bridge is **order-dependent** — drivers
+interact, so a sequential walk assigns interaction effects to whichever driver
+moves later — and it **carries a residual** rather than closing to zero. The
+€113m residual on operating profit is the model's D&A scaling rule showing its
+own error. A bridge that always adds up exactly has absorbed its error into
+one of the drivers, where nobody will find it.
+
 ## Decision implication
 
 For a CFO the useful output is not the forecast, it is where to spend review

@@ -13,7 +13,7 @@ from functools import lru_cache
 
 import numpy as np
 
-from src import backtest, claims, commentary, config as C, drivers, model, scenario
+from src import backtest, claims, commentary, config as C, drivers, model, scenario, variance
 
 DRIVER_ORDER = ["revenue_growth", "ebitda_margin", "working_capital_pct", "capex_eur_m", "tax_rate_pct"]
 DRIVER_TO_ASSUMPTION_KEY = {
@@ -111,6 +111,12 @@ def get_driver_priority() -> list[dict]:
     return rows
 
 
+@lru_cache(maxsize=len(variance.METRICS))
+def get_variance_bridge(metric: str = "free_cash_flow") -> dict:
+    """Why the forecast missed, decomposed across the five drivers."""
+    return variance.bridge(load_facts(), metric)
+
+
 def build_executive_statement() -> dict:
     bt = get_backtest()
     priority = get_driver_priority()
@@ -134,6 +140,24 @@ def build_executive_statement() -> dict:
         f"({top['confidence'].lower()} confidence assumption).",
         f"Naive extrapolation would have missed by more on every metric — see Forecast & Risk.",
     ]
+
+    # The variance bridge usually contradicts the comfortable reading of the
+    # cash-flow number, so it belongs in the executive statement rather than
+    # three clicks away: a small net miss built from large offsetting driver
+    # errors is a different finding from an accurate forecast.
+    cash_bridge = get_variance_bridge("free_cash_flow")
+    worst = variance.largest_driver(cash_bridge)
+    if worst is not None:
+        evidence.append(
+            f"{worst['label']} alone moved free cash flow by €{worst['impact']:+,.0f}m versus "
+            f"forecast (assumed {worst['forecast_value']:.1f}, actual {worst['actual_value']:.1f})."
+        )
+    if cash_bridge["offsetting_note"]:
+        evidence.append(
+            f"Free cash flow missed by only €{cash_bridge['total_variance']:+,.0f}m, but that nets "
+            f"€{cash_bridge['gross_driver_movement']:,.0f}m of gross driver error — the forecast was "
+            f"close on cash for offsetting reasons, not sound ones."
+        )
     return {"headline": headline, "evidence": evidence}
 
 
