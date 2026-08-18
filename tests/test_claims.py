@@ -146,6 +146,61 @@ def test_framing_is_read_per_clause_not_per_sentence():
     )["clean"]
 
 
+# ---------------------------------------------------------------- effect sign
+IMPACT_RESULT = {
+    "forecast": {"free_cash_flow": 1069.2},
+    "actual": {"free_cash_flow": 1106.4},
+    "revenue_growth": {"free_cash_flow_impact": 89.8},
+    "working_capital_pct": {"free_cash_flow_impact": -372.3},
+}
+IMPACT_ENTRIES = claims.index_outputs(IMPACT_RESULT)
+
+
+def impact_check(text: str) -> dict:
+    return claims.verify_claims(text, IMPACT_ENTRIES)
+
+
+def test_a_positive_impact_described_as_a_reduction_is_caught():
+    """Found in this project's own variance commentary, which passed all three
+    earlier checks: lower revenue growth builds less working capital and
+    releases cash, so its impact is positive however counter-intuitive that
+    reads."""
+    result = impact_check("Revenue growth came in lower, reducing free cash flow by 89.8 million.")
+    assert not result["clean"]
+    assert result["findings"][0]["kind"] == "effect_sign"
+
+
+def test_the_same_impact_with_the_right_verb_passes():
+    assert impact_check(
+        "Revenue growth came in lower, adding 89.8 million to free cash flow."
+    )["clean"]
+
+
+def test_a_negative_impact_described_as_a_reduction_passes():
+    assert impact_check(
+        "Working capital rose, reducing free cash flow by 372.3 million."
+    )["clean"]
+
+
+def test_a_negative_impact_described_as_a_contribution_is_caught():
+    result = impact_check("Working capital added 372.3 million to free cash flow.")
+    assert not result["clean"]
+    assert result["findings"][0]["kind"] == "effect_sign"
+
+
+def test_a_level_without_a_direction_verb_is_not_a_sign_claim():
+    """Only signed impacts have this failure mode; a level does not."""
+    assert impact_check("Free cash flow came in at 1106.4.")["clean"]
+
+
+def test_an_ambiguous_clause_carrying_both_verbs_is_left_alone():
+    """Both verbs in one clause means the checker cannot tell which applies,
+    and guessing would be worse than staying quiet."""
+    assert impact_check(
+        "Reducing and adding effects on free cash flow netted to 89.8 million."
+    )["clean"]
+
+
 # ---------------------------------------------------------------- attribution
 def test_a_value_quoted_under_the_wrong_metric_is_caught():
     """The blind spot tests/test_verifier_adversarial.py pins as uncatchable

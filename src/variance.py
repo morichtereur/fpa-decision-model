@@ -173,6 +173,7 @@ def bridge(facts: dict, metric: str = "free_cash_flow") -> dict:
             "Sequential bridge: drivers are substituted in a fixed order, so "
             "interaction effects are attributed to whichever driver moves later."
         ),
+        "waterfall": _waterfall(forecast_metric, steps, actual_metric),
         "steps": [
             {
                 "driver_id": s.driver_id,
@@ -191,6 +192,26 @@ def bridge(facts: dict, metric: str = "free_cash_flow") -> dict:
     }
 
 
+def _waterfall(forecast_metric: float, steps: list[BridgeStep], actual_metric: float) -> list[dict]:
+    """The same {label, value, delta} shape the Scenario Planner's bridge uses.
+
+    Emitted by the model rather than reshaped in the frontend, so both bridges
+    are one chart component fed by one contract — and so the residual is a bar
+    on the chart rather than a footnote the eye skips.
+    """
+    rows = [{"label": "Forecast", "value": round(forecast_metric, 1), "delta": None}]
+    for step in steps:
+        rows.append({
+            "label": step.label,
+            "value": round(step.metric_after, 1),
+            "delta": round(step.impact, 1),
+        })
+    residual = actual_metric - (steps[-1].metric_after if steps else forecast_metric)
+    rows.append({"label": "Residual", "value": round(actual_metric, 1), "delta": round(residual, 1)})
+    rows.append({"label": "Actual", "value": round(actual_metric, 1), "delta": None})
+    return rows
+
+
 def _offsetting_note(gross: float, total: float) -> str | None:
     """Flag a small net variance built from large, opposing driver errors.
 
@@ -203,8 +224,8 @@ def _offsetting_note(gross: float, total: float) -> str | None:
     if abs(total) < 1e-9 or gross <= abs(total) * 3:
         return None
     return (
-        f"Driver errors largely offset: {gross:,.1f} of gross movement nets to "
-        f"{total:+,.1f}. The forecast landed close on this metric despite every "
+        f"Driver errors largely offset: €{gross:,.0f}m of gross movement nets to "
+        f"€{total:+,.0f}m. The forecast landed close on this metric despite every "
         f"assumption behind it being wrong, so the small variance is not evidence "
         f"the assumptions were sound."
     )
@@ -225,6 +246,33 @@ def largest_driver(bridge_result: dict) -> dict | None:
     """
     steps = bridge_result["steps"]
     return max(steps, key=lambda s: abs(s["impact"])) if steps else None
+
+
+def commentary_table(bridge_result: dict) -> dict:
+    """The bridge as a {series: {metric: value}} table a model can write from.
+
+    Each driver becomes its own series carrying what was assumed, what
+    happened, and what the difference was worth. That shape is what lets the
+    coherence checks work on the result: a claim about a driver's cash impact
+    is bound to that driver, not floating in a flat list of numbers.
+    """
+    metric = bridge_result["metric"]
+    table: dict[str, dict[str, float]] = {
+        "forecast": {metric: bridge_result["forecast"]},
+        "actual": {metric: bridge_result["actual"]},
+        "variance": {
+            f"{metric}_net": bridge_result["total_variance"],
+            f"{metric}_gross_driver_error": bridge_result["gross_driver_movement"],
+            f"{metric}_residual": bridge_result["residual"],
+        },
+    }
+    for step in bridge_result["steps"]:
+        table[step["driver_id"]] = {
+            "assumed": step["forecast_value"],
+            "realised": step["actual_value"],
+            f"{metric}_impact": step["impact"],
+        }
+    return table
 
 
 def main() -> None:  # pragma: no cover - manual inspection

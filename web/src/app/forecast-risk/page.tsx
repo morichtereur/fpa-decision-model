@@ -1,17 +1,20 @@
 import { api } from "@/lib/api";
-import { formatEur } from "@/lib/format";
+import { formatEur, formatEurSigned } from "@/lib/format";
 import BacktestBars from "@/components/BacktestBars";
 import MonteCarloChart from "@/components/MonteCarloChart";
 import DriverPriorityList from "@/components/DriverPriorityList";
+import VarianceBridge from "@/components/VarianceBridge";
 import styles from "./forecast-risk.module.css";
 
 export const dynamic = "force-dynamic";
 
 export default async function ForecastRiskPage() {
-  const [backtest, monteCarlo, driverPriority] = await Promise.all([
+  const [backtest, monteCarlo, driverPriority, variance, commentary] = await Promise.all([
     api.backtest(),
     api.monteCarlo(),
     api.driverPriority(),
+    api.variance("free_cash_flow"),
+    api.commentary("variance").catch(() => null),
   ]);
 
   return (
@@ -59,6 +62,19 @@ export default async function ForecastRiskPage() {
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionHeading}>Why the forecast missed</h2>
+        <p className={styles.sectionIntro}>
+          Free cash flow landed {formatEurSigned(variance.total_variance)} from the forecast, which
+          reads like a model that worked. Walking each assumption to what FY2025 actually delivered
+          shows {formatEur(variance.gross_driver_movement)} of driver error that happened to cancel.
+        </p>
+        <VarianceBridge bridge={variance} />
+        {commentary && (
+          <blockquote className={styles.varianceCommentary}>{commentary.text}</blockquote>
+        )}
       </section>
 
       <section className={styles.section}>

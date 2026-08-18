@@ -117,6 +117,24 @@ def get_variance_bridge(metric: str = "free_cash_flow") -> dict:
     return variance.bridge(load_facts(), metric)
 
 
+def generate_variance_commentary(metric: str = "free_cash_flow") -> dict:
+    """Commentary that explains the miss, verified by the same two layers.
+
+    The scenario commentary describes what the numbers were; this one says
+    which assumption was responsible. Same guardrail, different table.
+    """
+    bridge = get_variance_bridge(metric)
+    text, outputs, provenance = commentary.write_variance(bridge)
+    return {
+        "text": text,
+        "grounding": commentary.verify_grounding(text, outputs),
+        "coherence": claims.verify_claims(
+            text, claims.index_outputs(variance.commentary_table(bridge))
+        ),
+        "provenance": provenance,
+    }
+
+
 def build_executive_statement() -> dict:
     bt = get_backtest()
     priority = get_driver_priority()

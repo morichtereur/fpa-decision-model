@@ -1,14 +1,14 @@
 {
   "base": {
-    "text": "The driver-based forecast under discussion shows a mixed performance relative to actual results, with improved accuracy over the naive forecast but notable underpredictions in key profitability and cash flow metrics. Revenue was projected at 25,585.2, missing actual revenue of 24,811 by 3.1% due to an overstatement, while operating profit was forecast at 1,750.0 against an actual of 2,056, resulting in a 14.9% understatement. Free cash flow was projected at 1,069.2, falling short of the actual 1,106.4 by 3.4%, indicating a slight underprediction in cash generation. Compared to the naive forecast, the driver-based approach reduced errors across all three metrics, particularly improving the operating profit forecast from a 22.3% understatement to 14.9%. The forecast correctly captured the direction of deviation for each line item, though it consistently underestimated operating profitability and free cash flow despite outperforming the top-down extrapolation.",
+    "text": "The driver-based forecast understated revenue by 3.1% compared to actual, while the naive forecast overstated it by 5.5%. Operating profit was understated by 14.9% in the driver-based forecast versus 22.3% in the naive version, indicating the driver-based approach improved profit estimation. Free cash flow was slightly understated by 3.4% in the driver-based forecast, contrasting with the naive forecast\u2019s 14.8% overstatement, showing better alignment with actual cash generation.",
     "grounding": {
-      "total_claims": 11,
-      "grounded": 11,
+      "total_claims": 6,
+      "grounded": 6,
       "ungrounded": [],
       "grounding_rate": 1.0
     },
     "coherence": {
-      "sentences": 5,
+      "sentences": 3,
       "findings": [],
       "finding_count": 0,
       "clean": true
@@ -18,13 +18,64 @@
       "model": "nvidia.nemotron-super-3-120b",
       "usage": {
         "input_tokens": 666,
-        "output_tokens": 225
+        "output_tokens": 111
       }
     },
-    "generated_at": "2026-08-17T20:58:01.080019+00:00"
+    "attempts": 1,
+    "generated_at": "2026-08-18T06:06:08.069398+00:00"
   },
   "upside": {
-    "text": "The actual revenue of $24,811 million was understated by both the naive and upside forecasts, with the naive forecast missing actual by 5.5% and the upside forecast missing by 4.1%. Actual operating profit of $2,056 million was overstated by the naive forecast (-22.3% error, meaning it was too low) but slightly understated by the upside forecast (-1.5% error, meaning the upside forecast was just below actual). Actual free cash flow of $1,106.4 million was overstated by the naive forecast (14.8% error, meaning it was too low) and significantly overstated by the upside forecast (23.0% error, meaning it was too low).",
+    "text": "Upside scenario revenue of $25,822.1 million came in above actual revenue of $24,811 million, while operating profit of $2024.4 million was slightly below the actual $2056 million, resulting in a forecast miss on profit of -1.5%. Free cash flow at $1360.4 million significantly exceeded the actual $1106.4 million, reflecting strong cash generation in this scenario despite only modest revenue outperformance relative to actuals.",
+    "grounding": {
+      "total_claims": 7,
+      "grounded": 7,
+      "ungrounded": [],
+      "grounding_rate": 1.0
+    },
+    "coherence": {
+      "sentences": 2,
+      "findings": [],
+      "finding_count": 0,
+      "clean": true
+    },
+    "provenance": {
+      "provider": "bedrock",
+      "model": "nvidia.nemotron-super-3-120b",
+      "usage": {
+        "input_tokens": 653,
+        "output_tokens": 112
+      }
+    },
+    "attempts": 3,
+    "generated_at": "2026-08-18T06:06:12.947481+00:00"
+  },
+  "downside": {
+    "text": "The downside scenario shows revenue slightly above actual at 25,348.3 (missed upward by 2.2%), but operating profit at 14,80.3 fell well short of the 2,056 actual, understating it by 28.0%. Free cash flow at 783.9 also came in significantly below the actual 1,106.4, missing by 29.1%. While the scenario captures a revenue outcome close to reality, its profit and cash flow projections are notably pessimistic relative to what occurred.",
+    "grounding": {
+      "total_claims": 8,
+      "grounded": 8,
+      "ungrounded": [],
+      "grounding_rate": 1.0
+    },
+    "coherence": {
+      "sentences": 3,
+      "findings": [],
+      "finding_count": 0,
+      "clean": true
+    },
+    "provenance": {
+      "provider": "bedrock",
+      "model": "nvidia.nemotron-super-3-120b",
+      "usage": {
+        "input_tokens": 653,
+        "output_tokens": 126
+      }
+    },
+    "attempts": 1,
+    "generated_at": "2026-08-18T06:06:14.372123+00:00"
+  },
+  "wc_stress": {
+    "text": "Actual revenue was 24811, while the wc_stress scenario projected 25585.2, meaning the scenario overstated revenue by 3.1%. Similarly, operating profit came in at 2056 versus the scenario\u2019s 1750.0, so the scenario understated operating profit by 14.9%. Free cash flow was 1106.4 actual, but the wc_stress scenario forecast only 429.6, indicating the scenario understated free cash flow by 61.2%.",
     "grounding": {
       "total_claims": 9,
       "grounded": 9,
@@ -41,14 +92,15 @@
       "provider": "bedrock",
       "model": "nvidia.nemotron-super-3-120b",
       "usage": {
-        "input_tokens": 653,
-        "output_tokens": 160
+        "input_tokens": 667,
+        "output_tokens": 120
       }
     },
-    "generated_at": "2026-08-17T20:58:02.872470+00:00"
+    "attempts": 1,
+    "generated_at": "2026-08-18T06:06:15.903469+00:00"
   },
-  "downside": {
-    "text": "The downside scenario understated revenue by 2.2%, operating profit by 28.0%, and free cash flow by 29.1% compared to actual results. This reflects a significant shortfall in profitability and cash generation relative to what occurred, despite revenue being relatively closer to forecast. The gap between the downside scenario and actual performance widened notably at the operating profit and free cash flow levels, indicating that cost, tax, or working capital assumptions in the scenario were overly pessimistic or failed to capture actual resilience in the business.",
+  "margin_compression": {
+    "text": "Revenue missed actual by 3.1%, reflecting the impact of margin compression assumptions on growth expectations. Operating profit was understated by 39.8%, indicating the model failed to capture the depth of profit pressure embedded in the scenario. Free cash flow was significantly understated by 37.4%, driven by lower operating profit and higher working capital outflows relative to the actual result.",
     "grounding": {
       "total_claims": 3,
       "grounded": 3,
@@ -65,17 +117,18 @@
       "provider": "bedrock",
       "model": "nvidia.nemotron-super-3-120b",
       "usage": {
-        "input_tokens": 653,
-        "output_tokens": 112
+        "input_tokens": 665,
+        "output_tokens": 81
       }
     },
-    "generated_at": "2026-08-17T20:58:04.035999+00:00"
+    "attempts": 1,
+    "generated_at": "2026-08-18T06:06:16.816994+00:00"
   },
-  "wc_stress": {
-    "text": "The working capital stress scenario shows revenue 3.1% above actual, resulting in an overstatement, while operating profit was understated by 14.9% and free cash flow was sharply understated by 61.2%. This indicates the stress case significantly underperforms on profitability and cash generation despite modestly higher revenue. Compared to the naive forecast, the wc_stress scenario improves on operating profit and free cash flow error magnitudes, though all metrics still miss actuals. The large negative free cash flow error suggests the scenario\u2019s assumptions around working capital changes and capex weigh heavily on cash conversion.",
+  "variance": {
+    "text": "Working capital reduced free cash flow by 372.3, the largest impact of any driver. Revenue growth added 89.8, EBITDA margin added 180.6, the effective tax rate added 42.8, and lower capex added 123.0. These opposing forces largely offset, yielding a small net increase of 37.2 despite substantial underlying movement in the assumptions. The residual of -26.6 reflects the portion of the variance not explained by the five drivers.",
     "grounding": {
-      "total_claims": 3,
-      "grounded": 3,
+      "total_claims": 7,
+      "grounded": 7,
       "ungrounded": [],
       "grounding_rate": 1.0
     },
@@ -89,34 +142,11 @@
       "provider": "bedrock",
       "model": "nvidia.nemotron-super-3-120b",
       "usage": {
-        "input_tokens": 667,
-        "output_tokens": 125
+        "input_tokens": 813,
+        "output_tokens": 112
       }
     },
-    "generated_at": "2026-08-17T20:58:05.275520+00:00"
-  },
-  "margin_compression": {
-    "text": "Revenue was understated by the forecast, coming in 3.1% below the margin compression scenario's projection, while operating profit was significantly understated at 39.8% below forecast. Free cash flow was also markedly understated, falling 37.4% short of the margin compression scenario's estimate. The naive extrapolation overstated revenue by 5.5% and free cash flow by 14.8%, but understated operating profit by 22.3%. Actual operating profit of 2,056 was substantially higher than both the naive forecast (1,596.5) and the margin compression scenario (1,238.3), indicating stronger core profitability than either projection anticipated. Free cash flow at 1,106.4 exceeded the margin compression scenario's 693.1 but fell short of the naive forecast's 1,270.2, reflecting lower-than-expected cash conversion despite higher earnings.",
-    "grounding": {
-      "total_claims": 12,
-      "grounded": 12,
-      "ungrounded": [],
-      "grounding_rate": 1.0
-    },
-    "coherence": {
-      "sentences": 5,
-      "findings": [],
-      "finding_count": 0,
-      "clean": true
-    },
-    "provenance": {
-      "provider": "bedrock",
-      "model": "nvidia.nemotron-super-3-120b",
-      "usage": {
-        "input_tokens": 665,
-        "output_tokens": 204
-      }
-    },
-    "generated_at": "2026-08-17T20:58:07.114075+00:00"
+    "attempts": 1,
+    "generated_at": "2026-08-18T06:06:17.821262+00:00"
   }
 }

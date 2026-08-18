@@ -134,3 +134,29 @@ export interface CommentaryResponse {
   };
   generated_at?: string;
 }
+
+export interface VarianceStep {
+  driver_id: string;
+  label: string;
+  unit: string;
+  forecast_value: number;
+  actual_value: number;
+  impact: number;
+  share_of_variance_pct: number | null;
+  source: string;
+}
+
+export interface VarianceBridgeResponse {
+  metric: string;
+  forecast: number;
+  actual: number;
+  total_variance: number;
+  explained_by_drivers: number;
+  residual: number;
+  gross_driver_movement: number;
+  residual_note: string;
+  order_note: string;
+  offsetting_note: string | null;
+  waterfall: BridgeStep[];
+  steps: VarianceStep[];
+}

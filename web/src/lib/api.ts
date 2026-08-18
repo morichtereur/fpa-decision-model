@@ -9,6 +9,7 @@ import type {
   OutlookResponse,
   PresetsResponse,
   ScenarioResponse,
+  VarianceBridgeResponse,
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
@@ -43,6 +44,8 @@ export const api = {
   driverPriority: () => request<DriverPriorityRow[]>("/api/driver-priority"),
   monteCarlo: () => request<MonteCarloResponse>("/api/monte-carlo"),
   assumptions: () => request<AssumptionRow[]>("/api/assumptions"),
+  variance: (metric = "free_cash_flow") =>
+    request<VarianceBridgeResponse>(`/api/variance/${metric}`),
   commentary: (scenarioId: string) => request<CommentaryResponse>(`/api/commentary/${scenarioId}`),
   scenario: (driverValues: DriverValues) =>
     request<ScenarioResponse>("/api/scenario", {

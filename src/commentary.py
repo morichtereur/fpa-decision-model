@@ -48,6 +48,40 @@ known facts in the table.
 - Plain prose, no headers or bullet points."""
 
 
+VARIANCE_SYSTEM_PROMPT = """\
+You write short management commentary (3-5 sentences) explaining why an FP&A \
+forecast missed, for a reader who will see the variance bridge alongside your \
+text.
+
+The table gives, for each driver, what was assumed, what actually happened, \
+and what that difference was worth on the metric. `variance_*_net` is the \
+overall miss, `variance_*_gross_driver_error` is the total absolute movement \
+across drivers, and `variance_*_residual` is the part no driver explains.
+
+Rules:
+- Use ONLY the numbers in the table you are given. Do not compute, estimate, \
+round to a different precision than shown, or bring in any figure not present \
+in the table.
+- Lead with the driver whose impact is largest in absolute terms, and name it.
+- Where the gross driver error is much larger than the net variance, say so \
+plainly: the drivers offset, and a small net miss is not evidence the \
+assumptions were sound. This is the most important thing the table shows and \
+it is the thing a reader will otherwise get wrong.
+- Mention the residual and what it means: the part of the variance no driver \
+accounts for.
+- Match the verb to the SIGN of each impact, not to whether the assumption was \
+too high or too low. A positive impact increased the metric; a negative impact \
+reduced it. These come apart: revenue growth below assumption builds less \
+working capital and therefore ADDS cash. Read the sign in the table before \
+choosing between "added" and "reduced".
+- Write magnitudes, not signed numbers, after a direction word. "reduced free \
+cash flow by 372.3" — never "added -372.3", which states the direction twice \
+and contradicts itself once.
+- Do not speculate about causes outside the table. You know what moved, not why \
+the business moved it.
+- Plain prose, no headers or bullet points."""
+
+
 def _flatten_outputs(backtest_result: dict) -> dict:
     """Turn a nested {series: {metric: value}} result into a flat
     label -> number table, which is both what the LLM is given and what
@@ -103,6 +137,60 @@ def write(backtest_result: dict) -> tuple[str, dict, dict]:
     )
     provenance = {"provider": provider.name, "model": model, "usage": completion.usage}
     return completion.text, outputs, provenance
+
+
+def write_variance(bridge_result: dict) -> tuple[str, dict, dict]:
+    """Commentary explaining a forecast-to-actual variance bridge.
+
+    Same contract as write(): text, the exact table it was written from, and
+    provenance. The verifiers that run on the result are the same ones — the
+    guardrail is a property of the pipeline, not of one prompt.
+    """
+    from src import variance
+    from src.provider import get_provider
+
+    outputs = _flatten_outputs(variance.commentary_table(bridge_result))
+    table_text = "\n".join(f"{k}: {v}" for k, v in outputs.items())
+    provider = get_provider()
+    model = C.COMMENTARY_MODEL or provider.default_model
+    completion = provider.complete(
+        system=VARIANCE_SYSTEM_PROMPT,
+        user=f"Numbers table:\n{table_text}\n\n{_direction_legend(bridge_result)}",
+        model=model,
+        max_tokens=450,
+    )
+    provenance = {"provider": provider.name, "model": model, "usage": completion.usage}
+    return completion.text, outputs, provenance
+
+
+def _direction_legend(bridge_result: dict) -> str:
+    """State each driver's direction outright instead of asking for it.
+
+    Sign is where this prompt kept failing, and the reason is not carelessness:
+    the direction of an impact contradicts intuition in exactly the case that
+    matters. Revenue growth below assumption reads as bad news, and it releases
+    cash, because less growth builds less working capital. A model reasoning
+    from the business meaning will get that backwards however firmly the rules
+    say to read the sign.
+
+    So the pipeline states it, having already computed it. Same lesson as the
+    forecast-error framing: a rule that asks a model to derive something the
+    system already knows is a rule that manufactures errors.
+
+    This is guidance, not table content — the verified table stays numeric, so
+    grounding and coherence check exactly what they checked before.
+    """
+    metric = bridge_result["metric"].replace("_", " ")
+    lines = [
+        f"Direction of each driver's effect on {metric} (already determined — do not re-derive):"
+    ]
+    for step in bridge_result["steps"]:
+        verb = "ADDED" if step["impact"] >= 0 else "REDUCED"
+        lines.append(f"  {step['label']}: {verb} {abs(step['impact'])}")
+    lines.append(
+        "Use these verbs. State magnitudes after them, never a signed number."
+    )
+    return "\n".join(lines)
 
 
 _NUMBER_RE = re.compile(

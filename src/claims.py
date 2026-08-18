@@ -22,6 +22,7 @@ contained:
 ``direction``      a comparison whose arithmetic contradicts its verb
 ``comparison_base``  a forecast error re-labelled as an outperformance —
                    different quantities with different denominators
+``effect_sign``    a signed impact described with the opposite verb
 ``attribution``    a number quoted under a metric it does not belong to,
                    which is the structural blind spot
                    tests/test_verifier_adversarial.py pins as uncatchable by
@@ -111,6 +112,21 @@ OUTPERFORMANCE_PHRASES: tuple[str, ...] = (
     "exceeding",
     "surpassed",
     "ahead of",
+)
+
+#: Verbs describing the direction of an effect on a metric. A bridge table
+#: stores signed impacts, so "reducing free cash flow by 89.8" and a stored
+#: +89.8 disagree even though the magnitude matches — the number is real, the
+#: sentence is not. Levels do not have this failure mode; only signed impacts do.
+EFFECT_NEGATIVE: tuple[str, ...] = (
+    "reducing", "reduced", "lowering", "lowered", "cost", "costing", "cut",
+    "cutting", "decreasing", "decreased", "subtracting", "subtracted",
+    "dragging", "dragged", "hurt", "weighed",
+)
+
+EFFECT_POSITIVE: tuple[str, ...] = (
+    "adding", "added", "increasing", "increased", "contributing", "contributed",
+    "boosting", "boosted", "lifting", "lifted", "improving", "improved", "helped",
 )
 
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
@@ -381,6 +397,63 @@ def _check_comparison_base(
     return findings
 
 
+def _metric_matches(entry_metric: str, mentioned: str) -> bool:
+    """Whether a table entry belongs to the metric a sentence names.
+
+    Exact match, or the mentioned metric as a whole-word part of the entry's —
+    the variance bridge stores `free_cash_flow_impact`, which is a statement
+    about free cash flow, not a different quantity. Matching on whole segments
+    rather than substrings keeps `tax` from claiming `effective_tax_rate`.
+    """
+    if entry_metric == mentioned:
+        return True
+    segments = entry_metric.split("_")
+    wanted = mentioned.split("_")
+    return any(segments[i : i + len(wanted)] == wanted for i in range(len(segments)))
+
+
+def _check_effect_sign(
+    sentence: str, numbers: list[_Number], entries: list[TableEntry], tolerance: float
+) -> list[Finding]:
+    """A signed impact described with the opposite verb.
+
+    Found in this project's own variance commentary, which was otherwise clean
+    on all three earlier checks: "Revenue growth came in lower than assumed,
+    reducing free cash flow by 89.8" — where the stored impact is +89.8, since
+    lower growth builds less working capital and releases cash. The magnitude
+    is right, the number is in the table, and the sentence says the opposite of
+    what happened.
+    """
+    findings = []
+    for number in numbers:
+        matches = [
+            e for e in _matching_entries(number.value, entries, tolerance) if "impact" in e.metric
+        ]
+        if not matches:
+            continue
+        entry = matches[0]
+        clause = _clause_around(sentence, number.start).lower()
+        negative = any(word in clause for word in EFFECT_NEGATIVE)
+        positive = any(word in clause for word in EFFECT_POSITIVE)
+        if negative == positive:  # neither, or an ambiguous mix
+            continue
+        if negative and entry.value > 0:
+            findings.append(Finding(
+                "effect_sign",
+                sentence,
+                f"'{number.raw}' is described as reducing the metric, but {entry.label} "
+                f"is {entry.value:+}, which increased it.",
+            ))
+        elif positive and entry.value < 0:
+            findings.append(Finding(
+                "effect_sign",
+                sentence,
+                f"'{number.raw}' is described as adding to the metric, but {entry.label} "
+                f"is {entry.value:+}, which reduced it.",
+            ))
+    return findings
+
+
 def _check_attribution(
     sentence: str, numbers: list[_Number], entries: list[TableEntry], tolerance: float
 ) -> list[Finding]:
@@ -400,7 +473,7 @@ def _check_attribution(
         matches = _matching_entries(number.value, entries, tolerance)
         if not matches:
             continue  # ungrounded: verify_grounding()'s job, not this one
-        if any(entry.metric == metric for entry in matches):
+        if any(_metric_matches(entry.metric, metric) for entry in matches):
             continue
         wrong = matches[0]
         findings.append(Finding(
@@ -430,6 +503,7 @@ def verify_claims(commentary: str, entries: list[TableEntry], tolerance: float =
             continue
         findings.extend(_check_direction(sentence, numbers))
         findings.extend(_check_comparison_base(sentence, numbers, entries, tolerance))
+        findings.extend(_check_effect_sign(sentence, numbers, entries, tolerance))
         findings.extend(_check_attribution(sentence, numbers, entries, tolerance))
 
     return {
