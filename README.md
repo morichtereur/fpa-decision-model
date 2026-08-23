@@ -2,6 +2,23 @@
 
 [![Tests](https://github.com/morichtereur/fpa-decision-model/actions/workflows/test.yml/badge.svg)](https://github.com/morichtereur/fpa-decision-model/actions/workflows/test.yml)
 
+> **Archived — superseded by
+> [fpa-decision-intelligence](https://github.com/morichtereur/fpa-decision-intelligence).**
+>
+> That repository carries this work forward on the same foundations: a second
+> backtest vintage (FY2023→FY2024 beside the FY2024→FY2025 one below), a decision
+> layer that ranks each driver by exposure against declared judgements about how
+> firm and how movable it is, and a configurable engine that runs a second client
+> with materially different economics on the same code. The guardrail described
+> below lives there too.
+>
+> The second vintage also corrected something this repository states. Carrying the
+> prior year's effective tax rate forward gave the FY2024 plan a 189% rate — tax on
+> a near-zero pre-tax result in the write-off year — which made the method look
+> worse than a naive extrapolation on cash. The rule is guarded in the successor.
+>
+> Kept read-only for its history.
+
 **Can a driver-based FP&A model beat a naive top-down forecast, checked against what actually happened?**
 
 FP&A models often look precise while hiding the assumptions that actually
